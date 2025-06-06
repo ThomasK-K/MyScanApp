@@ -1,0 +1,17 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-native", // Use React Native's JSX transform
+    "moduleResolution": "node", // Use Node.js-style module resolution
+    "esModuleInterop": true, // Enable better compatibility with CommonJS modules
+    "skipLibCheck": true, // Skip type-checking of declaration files (improves performance)
+    "resolveJsonModule": true, // Allow importing JSON files
+    "baseUrl": ".", // Base directory for module resolution
+    "paths": {
+      "@/*": ["./src/*"] // Map imports starting with "@/" to the "src" directory
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"], // Include all TypeScript files
+  "exclude": ["node_modules","_dummy"] // Exclude the node_modules directory
+}

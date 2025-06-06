@@ -1,0 +1,1 @@
+export const apiUrl = "http://192,168,10,113:3000/upload";
