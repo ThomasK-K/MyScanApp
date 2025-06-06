@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import * as FileSystem from "expo-file-system";
 import { UploadResponse } from "../types";
+import InvoiceMetaDataForm from "./MetaDataForms/InvoiceMetaDataForm";
 import {
   BigText,
   Modal as ErfassungsMaske,
@@ -25,7 +26,7 @@ import DocumentScanner, {
   ResponseType,
 } from "react-native-document-scanner-plugin";
 import getFormattedDate from "../utils/getFormattedDate";
-import { catData, yearData, personData } from "../appData";
+
 import {
   uploadImageWithMetadata,
   uploadImageWithMetadataWeb,
@@ -57,22 +58,6 @@ const FileMetadataManager: React.FC = () => {
   const [currentFileId, setCurrentFileId] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<metaDataType>({});
 
-  // // Get current file being edited
-  // const currentFile = useMemo(() => {
-  //   return files.find((file) => file.id === currentFileId);
-  // }, [files, currentFileId]);
-
-  // Get Sub categories based on selected category
-  const categories: CategoryType = useMemo(() => {
-    if (!metadata.Kategorie) return [];
-    const subCategoryObj = catData.find(
-      (item) => Object.keys(item)[0] === metadata.Kategorie
-    );
-    // console.log("##### categoryObj", subCategoryObj);
-    return subCategoryObj
-      ? subCategoryObj[metadata.Kategorie as keyof typeof subCategoryObj] || []
-      : [];
-  }, [metadata.Kategorie]);
 
   const scanDocument = useCallback(async () => {
     try {
@@ -251,6 +236,9 @@ const FileMetadataManager: React.FC = () => {
     );
   }, [metadata]);
 
+  // Example category data, replace with your actual data source if needed
+  const catData: Array<{ [key: string]: any }> = [];
+
   //  store filed/value pair
   const onValueChange = (field: string, val: string) => {
     setFieldData({ ...fieldData, [field]: val });
@@ -273,74 +261,7 @@ const FileMetadataManager: React.FC = () => {
             theme={"dark"}
           >
             <BigText style={{color:'white'}}>Dokument erfassen</BigText>
-
-            <InputSelect
-              style={{ width: 400 }}
-              label="Jahr"
-              name="Jahr"
-              placeholder="Jahr ..."
-              theme={"dark"}
-              enabled={true}
-              validation={{ required: true }}
-              onValueChange={onMetadataChange}
-              items={yearData}
-            />
-            <InputSelect
-              style={{ width: 400 }}
-              label="Name"
-              name="Name"
-              placeholder="Beleg für ..."
-              theme={"dark"}
-              enabled={true}
-              validation={{ required: true }}
-              onValueChange={onMetadataChange}
-              items={personData}
-            />
-            <InputSelect
-              style={{ width: 400 }}
-              label="Kategorie"
-              name="Kategorie"
-              placeholder="Kategorie ..."
-              theme={"dark"}
-              enabled={true}
-              validation={{ required: true }}
-              onValueChange={onMetadataChange}
-              items={catData.map((item) => {
-                const key = Object.keys(item)[0] as keyof typeof item;
-                return { value: key };
-              })}
-            />
-            {/* // Subcategories */}
-            {categories.length > 0 ? (
-              <InputSelect
-                style={{ width: 400 }}
-                label="subKategorie"
-                name="subKategorie"
-                placeholder="Sub Kategorie ..."
-                theme={"dark"}
-                enabled={true}
-                validation={{ required: true }}
-                onValueChange={onMetadataChange}
-                items={categories.map((item) => ({ value: item }))}
-              />
-            ) : (
-              <></>
-            )}
-           <MyInput
-            label="Betrag"
-            name="betrag"
-            onValueChange={onMetadataChange}
-            isDecimal={true}
-            isPassword={false}
-            validation={{ type: 'decimal', required: true }}
-            theme={'dark'}
-            props={{ style: { width: 200,height:50,padding:5} }}
-          />
-               <MySwitch 
-            label="Nebenkosten?"
-            name="switch"
-            onValueChange={onMetadataChange}
-          />
+            <InvoiceMetaDataForm metadata={metadata} onChange={onMetadataChange} />
           </ErfassungsMaske>
         )}
 

@@ -1,9 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import { FileWithMetadata } from "../types";
-
 import { UploadResponse } from "../types";
-
 
 // Datei auswählen
 const pickImage = async () => {
@@ -18,8 +16,15 @@ const pickImage = async () => {
   return null;
 };
 
+
+// Default upload URLs
+const DEFAULT_WEB_UPLOAD_URL = "http://localhost:3000/docs/upload";
+const DEFAULT_NATIVE_UPLOAD_URL = "http://192.168.10.113:3000/docs/upload";
+
+// Web upload function using Recoil settings
 export const uploadImageWithMetadataWeb = async (
-  file: FileWithMetadata
+  file: FileWithMetadata,
+  uploadUrl?: string
 ): Promise<UploadResponse> => {
   try {
     // Remote URL
@@ -31,8 +36,9 @@ export const uploadImageWithMetadataWeb = async (
     formData.append("image", blob, file.name);
     formData.append("fieldData", JSON.stringify(file.fieldData));
 
-    // Upload with fetch
-    const response = await fetch("http://localhost:3000/docs/upload", {
+    // Use uploadUrl from argument or fallback to default
+    const url = uploadUrl || DEFAULT_WEB_UPLOAD_URL;
+    const response = await fetch(url, {
       method: "POST",
       body: formData,
     });
@@ -45,6 +51,11 @@ export const uploadImageWithMetadataWeb = async (
         data: responseData,
       };
     }
+    return {
+      success: true,
+      message: responseData.message || "Upload successful",
+      data: responseData,
+    };
   } catch (error) {
     console.error("Upload error:", error);
     return {
@@ -53,34 +64,28 @@ export const uploadImageWithMetadataWeb = async (
         error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
-
-  // Default return in case no other return is reached
-  return {
-    success: false,
-    message: "Unexpected error occurred",
-  };
 };
+// Native upload function using Recoil settings
 export const uploadImageWithMetadata = async (
-  file: FileWithMetadata
+  file: FileWithMetadata,
+  uploadUrl?: string
 ): Promise<UploadResponse> => {
   try {
-    const response = await FileSystem.uploadAsync(
-      "http://192.168.10.113:3000/docs/upload",
-      file.uri,
-      {
-        headers: {
-          // Auth etc
-        },
-        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-        fieldName: "image",
-        mimeType: file.mimeType || "image/jpeg",
-        parameters: {
-          fieldData: file.fieldData ? JSON.stringify(file.fieldData) : "",
-        },
-      }
-    );
+    // Use uploadUrl from argument or fallback to default
+    const url = uploadUrl || DEFAULT_NATIVE_UPLOAD_URL;
+    const response = await FileSystem.uploadAsync(url, file.uri, {
+      headers: {
+        // Auth etc
+      },
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: "image",
+      mimeType: file.mimeType || "image/jpeg",
+      parameters: {
+        fieldData: file.fieldData ? JSON.stringify(file.fieldData) : "",
+      },
+    });
     const result = JSON.parse(response.body);
-console.log("Upload result:", result);
+    console.log("Upload result:", result);
     return {
       success: result.success,
       message: result.message || "Upload successfull",
