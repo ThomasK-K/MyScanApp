@@ -22,3 +22,6 @@ export const catData = [
     ],
   },
 ];
+
+
+export const docType = ['Steuerbeleg', 'Rechnung'];

@@ -1,4 +1,4 @@
-import React,{useMemo,useState} from "react";
+import React,{useEffect, useMemo,useState} from "react";
 import { View } from "react-native";
 import { Input as MyInput, CrossPlatformPicker as InputSelect, Switch as MySwitch } from "tkk-rn-component-package";
 import { catData, yearData, personData } from "../../appData";
@@ -15,29 +15,30 @@ type metaDataType = {
 type CategoryType = string[];
   
 
-const InvoiceMetaDataForm: React.FC<InvoiceMetaDataFormProps> = ({metadata, onChange}) => {
+export const InvoiceMetaDataForm: React.FC<InvoiceMetaDataFormProps> = ({metadata, onChange}) => {
   // Get Sub categories based on selected category
   let categories: CategoryType = [];
-  if (metadata && metadata.Kategorie) {
+  useEffect(() => {
+    onChange('doctype', 'Steuerbeleg');
+  }, []);
+
+  if (metadata && metadata.category) {
     const subCategoryObj = catData.find(
-      (item) => Object.keys(item)[0] === metadata.Kategorie
+      (item) => Object.keys(item)[0] === metadata.category
     );
     categories = subCategoryObj
-      ? (subCategoryObj[metadata.Kategorie as keyof typeof subCategoryObj] as string[])
+      ? (subCategoryObj[metadata.category as keyof typeof subCategoryObj] as string[])
       : [];
   }
-
-
-
-
-
+  // set the catregory to Rechnung if not set
   
+
     return (
     <View>
       <InputSelect
         style={{ width: 400 }}
         label="Jahr"
-        name="Jahr"
+        name="year"
         placeholder="Jahr ..."
         theme={"dark"}
         enabled={true}
@@ -48,7 +49,7 @@ const InvoiceMetaDataForm: React.FC<InvoiceMetaDataFormProps> = ({metadata, onCh
       <InputSelect
         style={{ width: 400 }}
         label="Name"
-        name="Name"
+        name="name"
         placeholder="Beleg für ..."
         theme={"dark"}
         enabled={true}
@@ -59,7 +60,7 @@ const InvoiceMetaDataForm: React.FC<InvoiceMetaDataFormProps> = ({metadata, onCh
       <InputSelect
         style={{ width: 400 }}
         label="Kategorie"
-        name="Kategorie"
+        name="category"
         placeholder="Kategorie ..."
         theme={"dark"}
         enabled={true}
@@ -75,7 +76,7 @@ const InvoiceMetaDataForm: React.FC<InvoiceMetaDataFormProps> = ({metadata, onCh
         <InputSelect
           style={{ width: 400 }}
           label="subKategorie"
-          name="subKategorie"
+          name="subcategory"
           placeholder="Sub Kategorie ..."
           theme={"dark"}
           enabled={true}
@@ -86,7 +87,7 @@ const InvoiceMetaDataForm: React.FC<InvoiceMetaDataFormProps> = ({metadata, onCh
       ) : null}
       <MyInput
         label="Betrag"
-        name="betrag"
+        name="amount"
         onValueChange={onChange}
         isDecimal={true}
         isPassword={false}

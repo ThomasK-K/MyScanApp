@@ -1,7 +1,11 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import * as FileSystem from "expo-file-system";
 import { UploadResponse } from "../types";
-import InvoiceMetaDataForm from "./MetaDataForms/InvoiceMetaDataForm";
+import { InvoiceMetaDataForm } from "./MetaDataForms/InvoiceMetaDataForm";
+import { ReceiptMetadataForm } from "./MetaDataForms/ReceiptMetadataForm";
+import { settingsState, AppSettings } from "../state/recoilSettings";
+import { useRecoilState } from "recoil";
+
 import {
   BigText,
   Modal as ErfassungsMaske,
@@ -47,7 +51,7 @@ interface Category {
 }
 type CategoryType = string[];
 type metaDataType = {
-  [fieldName: string]: string | number| boolean | null;
+  [fieldName: string]: string | number | boolean | null;
 };
 /////////////////////////////////////////////////////////////////////////////////
 const FileMetadataManager: React.FC = () => {
@@ -57,7 +61,24 @@ const FileMetadataManager: React.FC = () => {
   const [fieldData, setFieldData] = useState<metaDataType>({});
   const [currentFileId, setCurrentFileId] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<metaDataType>({});
+  const [settings, setSettings] = useRecoilState(settingsState);
 
+  useEffect(() => {
+    const intializeMetaData = () => {
+      setMetadata({
+        doctype: settings.docType || "Steuerbeleg",
+        year: "",
+        name: "",
+        category: "",
+        subcategory: "",
+        amount: "",
+        switch: false,
+      });
+    }
+    if (isModalVisible) {
+      intializeMetaData();
+    }
+  }, [isModalVisible, settings.docType]);
 
   const scanDocument = useCallback(async () => {
     try {
@@ -74,7 +95,6 @@ const FileMetadataManager: React.FC = () => {
         const path = `${
           FileSystem.cacheDirectory ?? "/tmp/"
         }${scannedImageFileName}.jpg`;
-
 
         const imageAsset: DocumentPicker.DocumentPickerAsset = {
           name: scannedImageFileName,
@@ -178,7 +198,7 @@ const FileMetadataManager: React.FC = () => {
       const fileToUpload = files.find((file) => file.id === id);
       if (!fileToUpload) return;
       setIsLoading(true);
-
+      // console.log("##### fileToUpload", metadata);
       try {
         let res: UploadResponse = { success: false };
         if (Platform.OS === "web") {
@@ -194,6 +214,8 @@ const FileMetadataManager: React.FC = () => {
         }
         if (res.success) {
           Alert.alert("Success", res.message || "Upload successful");
+          setMetadata(({}) => ({})); // Reset metadata after successful upload
+
           removeFile(id);
         } else {
           throw new Error(res.message || "Upload failed");
@@ -211,6 +233,7 @@ const FileMetadataManager: React.FC = () => {
   const handleClose = (action: string): void => {
     // when Modal is closed
     if (action === "Save" && currentFileId) {
+      console.log("##### metadata", metadata);
       setFiles((prev) =>
         prev.map((file) =>
           file.id === currentFileId ? { ...file, metadata } : file
@@ -220,21 +243,12 @@ const FileMetadataManager: React.FC = () => {
     setIsModalVisible(false);
     setCurrentFileId(null);
   };
-  const onMetadataChange = useCallback((field: string, value: string|boolean) => {
-    setMetadata((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-
-  const validateMetadata = useCallback(() => {
-    return (
-      metadata.Jahr &&
-      metadata.Name &&
-      metadata.Kategorie &&
-      metadata.subKategorie &&
-      metadata.betrag &&
-      metadata.switch !== undefined
-    );
-  }, [metadata]);
+  const onMetadataChange = useCallback(
+    (field: string, value: string | boolean) => {
+      setMetadata((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
   // Example category data, replace with your actual data source if needed
   const catData: Array<{ [key: string]: any }> = [];
@@ -250,6 +264,23 @@ const FileMetadataManager: React.FC = () => {
     });
   };
 
+  const renderMetadataForm = () => {
+    if (settings.docType === "Steuerbeleg") {
+      return (
+        <InvoiceMetaDataForm metadata={metadata} onChange={onMetadataChange} />
+      );
+    }
+    if (settings.docType === "Rechnung") {
+      return (
+        <ReceiptMetadataForm metadata={metadata} onChange={onMetadataChange} />
+      );
+    }
+    // Default
+    return (
+      <InvoiceMetaDataForm metadata={metadata} onChange={onMetadataChange} />
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -260,8 +291,10 @@ const FileMetadataManager: React.FC = () => {
             onClose={handleClose}
             theme={"dark"}
           >
-            <BigText style={{color:'white'}}>Dokument erfassen</BigText>
-            <InvoiceMetaDataForm metadata={metadata} onChange={onMetadataChange} />
+            <BigText style={{ color: "white" }}>
+              {settings.docType} erfassen
+            </BigText>
+            <View style={styles.metadataContainer}>{renderMetadataForm()}</View>
           </ErfassungsMaske>
         )}
 

@@ -1,15 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRecoilState } from 'recoil';
-import { settingsState, AppSettings } from '../../state/recoilSettings';
-
-const STORAGE_KEY = 'appSettings';
-
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CrossPlatformPicker as InputSelect } from "tkk-rn-component-package";
+import { docType } from "../../appData";
+import { useRecoilState } from "recoil";
+import { settingsState, AppSettings } from "../../state/recoilSettings";
+import {} from "module";
+const STORAGE_KEY = "appSettings";
+type metaDataType = {
+  [fieldName: string]: string | number | boolean | null;
+};
 const SettingsRecoilScreen: React.FC = () => {
   const [settings, setSettings] = useRecoilState(settingsState);
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [isChanged, setIsChanged] = useState(false);
+  const [metadata, setMetadata] = useState<metaDataType>({});
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -38,6 +50,14 @@ const SettingsRecoilScreen: React.FC = () => {
     setIsChanged(false);
   };
 
+  const handleDocType =
+    (field: string, value: string | boolean) => {
+      setLocalSettings((prev) => ({ ...prev, docType: value as string }));
+      setIsChanged(true);
+    }
+    
+
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Settings (Recoil + AsyncStorage)</Text>
@@ -46,10 +66,24 @@ const SettingsRecoilScreen: React.FC = () => {
         <TextInput
           style={styles.input}
           value={localSettings.uploadUrl}
-          onChangeText={(text) => handleChange('uploadUrl', text)}
+          onChangeText={(text) => handleChange("uploadUrl", text)}
           placeholder="https://example.com/upload"
           autoCapitalize="none"
           autoCorrect={false}
+        />
+      </View>
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Belegart</Text>
+        <InputSelect
+          style={{ width: 400 }}
+          label="Belegart"
+          name="Belegart"
+          placeholder="Belegart ..."
+          theme={"dark"}
+          enabled={true}
+          validation={{ required: true }}
+          onValueChange={handleDocType}
+          items={docType.map((type) => ({ value: type }))}
         />
       </View>
       <View style={styles.inputGroup}>
@@ -57,13 +91,13 @@ const SettingsRecoilScreen: React.FC = () => {
         <View style={styles.themeRow}>
           <Button
             title="Light"
-            color={localSettings.theme === 'light' ? '#007AFF' : '#aaa'}
-            onPress={() => handleChange('theme', 'light')}
+            color={localSettings.theme === "light" ? "#007AFF" : "#aaa"}
+            onPress={() => handleChange("theme", "light")}
           />
           <Button
             title="Dark"
-            color={localSettings.theme === 'dark' ? '#007AFF' : '#aaa'}
-            onPress={() => handleChange('theme', 'dark')}
+            color={localSettings.theme === "dark" ? "#007AFF" : "#aaa"}
+            onPress={() => handleChange("theme", "dark")}
           />
         </View>
       </View>
@@ -81,11 +115,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 24,
   },
   inputGroup: {
@@ -97,15 +131,15 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
   },
   themeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 8,
     gap: 16,
   },
