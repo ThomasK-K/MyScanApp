@@ -33,14 +33,14 @@ export const uploadImageWithMetadataWeb = async (
     const blob = await resp.blob();
 
     const formData = new FormData();
-    formData.append("image", blob, file.name);
     formData.append("fieldData", JSON.stringify(file.fieldData));
+    formData.append("image", blob, file.name);
 
     // Use uploadUrl from argument or fallback to default
     const url = uploadUrl || DEFAULT_WEB_UPLOAD_URL;
     const response = await fetch(url, {
-      method: "POST",
       body: formData,
+      method: "POST",
     });
     const responseData = await response.json();
 

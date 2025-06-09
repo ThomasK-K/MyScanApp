@@ -1,18 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import * as FileSystem from "expo-file-system";
-import { UploadResponse } from "../types";
-import { InvoiceMetaDataForm } from "./MetaDataForms/InvoiceMetaDataForm";
-import { ReceiptMetadataForm } from "./MetaDataForms/ReceiptMetadataForm";
-import { settingsState, AppSettings } from "../state/recoilSettings";
 import { useRecoilState } from "recoil";
-
-import {
-  BigText,
-  Modal as ErfassungsMaske,
-  Input as MyInput,
-  CrossPlatformPicker as InputSelect,
-  Switch as MySwitch,
-} from "tkk-rn-component-package";
 import {
   View,
   Image,
@@ -25,10 +13,22 @@ import {
   SafeAreaView,
   Platform,
 } from "react-native";
+import {
+  BigText,
+  Modal as ErfassungsMaske,
+  Input as MyInput,
+  CrossPlatformPicker as InputSelect,
+  Switch as MySwitch,
+} from "tkk-rn-component-package";
 import * as DocumentPicker from "expo-document-picker";
 import DocumentScanner, {
   ResponseType,
 } from "react-native-document-scanner-plugin";
+import { UploadResponse,FileWithMetadata,metaDataType } from "../types";
+import { InvoiceMetaDataForm } from "./MetaDataForms/InvoiceMetaDataForm";
+import { ReceiptMetadataForm } from "./MetaDataForms/ReceiptMetadataForm";
+import { settingsState, AppSettings } from "../state/recoilSettings";
+
 import getFormattedDate from "../utils/getFormattedDate";
 
 import {
@@ -36,23 +36,7 @@ import {
   uploadImageWithMetadataWeb,
 } from "../utils/uploadMultipart";
 
-type FileWithMetadata = {
-  id: string;
-  uri: string;
-  name: string;
-  mimeType: string | null;
-  size: number;
-  base64?: string;
-  metadata?: metaDataType;
-};
-// Oder falls die Kategorien komplexer sind:
-interface Category {
-  id: string;
-}
-type CategoryType = string[];
-type metaDataType = {
-  [fieldName: string]: string | number | boolean | null;
-};
+
 /////////////////////////////////////////////////////////////////////////////////
 const FileMetadataManager: React.FC = () => {
   const [files, setFiles] = useState<FileWithMetadata[]>([]);
@@ -74,7 +58,7 @@ const FileMetadataManager: React.FC = () => {
         amount: "",
         switch: false,
       });
-    }
+    };
     if (isModalVisible) {
       intializeMetaData();
     }
@@ -322,13 +306,11 @@ const FileMetadataManager: React.FC = () => {
 
         {files.map((file) => (
           <View key={file.id} style={styles.fileCard}>
-            {true && (
-              <Image
-                source={{ uri: file.uri }}
-                style={styles.image}
-                resizeMode="contain"
-              />
-            )}
+            <Image
+              source={{ uri: file.uri }}
+              style={styles.image}
+              resizeMode="contain"
+            />
 
             <View style={styles.metadata}>
               <Text style={styles.metadataText}>Name: {file.name}</Text>
@@ -337,9 +319,9 @@ const FileMetadataManager: React.FC = () => {
                 Type: {file.mimeType || "Unknown"}
               </Text>
 
-              {Object.keys(metadata).map((key) => (
+              {file.metadata && Object.keys(file.metadata).map((key) => (
                 <Text key={key} style={styles.metadataText}>
-                  {key}: {metadata[key]}
+                  {key}: {String(metadata[key])}
                 </Text>
               ))}
             </View>
@@ -385,6 +367,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
   },
+  metadataContainer: {
+    marginBottom: 20,
+  },  
   button: {
     padding: 12,
     borderRadius: 5,
