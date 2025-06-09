@@ -36,6 +36,7 @@
     "tkk-rn-component-package": "^0.2.8"
   },
   "devDependencies": {
+    "@react-native-community/cli": "latest",
     "@babel/core": "^7.25.2",
     "@types/axios": "^0.9.36",
     "@types/react": "~18.3.12",

@@ -12,7 +12,7 @@ import { CrossPlatformPicker as InputSelect } from "tkk-rn-component-package";
 import { docType } from "../../appData";
 import { useRecoilState } from "recoil";
 import { settingsState, AppSettings } from "../../state/recoilSettings";
-import {} from "module";
+
 const STORAGE_KEY = "appSettings";
 type metaDataType = {
   [fieldName: string]: string | number | boolean | null;

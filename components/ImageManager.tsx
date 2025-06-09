@@ -184,17 +184,25 @@ const FileMetadataManager: React.FC = () => {
       setIsLoading(true);
       // console.log("##### fileToUpload", metadata);
       try {
+        const url= settings.uploadUrl || "https://example.com/upload"; // Replace with your upload URL
+                  Alert.alert("Error", settings.uploadUrl || "No upload URL set" );
+
+        if (!url) {
+          Alert.alert("Error", "Upload URL is not set in settings");
+          setIsLoading(false);
+          return;
+        }
         let res: UploadResponse = { success: false };
         if (Platform.OS === "web") {
           res = await uploadImageWithMetadataWeb({
             ...fileToUpload,
-            fieldData: fileToUpload.metadata,
-          });
+            fieldData: fileToUpload.metadata
+          },url);
         } else {
           res = await uploadImageWithMetadata({
             ...fileToUpload,
             fieldData: fileToUpload.metadata,
-          });
+          },url);
         }
         if (res.success) {
           Alert.alert("Success", res.message || "Upload successful");
