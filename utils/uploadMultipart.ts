@@ -16,7 +16,6 @@ const pickImage = async () => {
   return null;
 };
 
-
 // Default upload URLs
 const DEFAULT_WEB_UPLOAD_URL = "http://localhost:3000/docs/upload";
 const DEFAULT_NATIVE_UPLOAD_URL = "http://192.168.10.113:3000/docs/upload";
@@ -37,12 +36,23 @@ export const uploadImageWithMetadataWeb = async (
     formData.append("image", blob, file.name);
 
     // Use uploadUrl from argument or fallback to default
-    const url = uploadUrl || DEFAULT_WEB_UPLOAD_URL;
+    // const url = uploadUrl || DEFAULT_WEB_UPLOAD_URL;
+    const url = 'http://localhost:3000/upload'; // Replace with your upload URL
     const response = await fetch(url, {
       body: formData,
       method: "POST",
     });
-    const responseData = await response.json();
+console.log("Response status:", response);
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (e) {
+      console.error("Response is not valid JSON:", e);
+      return {
+        success: false,
+        message: "Server response is not valid JSON",
+      };
+    }
 
     if (!responseData.ok) {
       return {
