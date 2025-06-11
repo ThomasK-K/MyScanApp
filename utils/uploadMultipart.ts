@@ -38,6 +38,7 @@ export const uploadImageWithMetadataWeb = async (
 
     // Use uploadUrl from argument or fallback to default
     const url = uploadUrl || DEFAULT_WEB_UPLOAD_URL;
+    console.log("Uploading to:", url);
     const response = await fetch(url, {
       body: formData,
       method: "POST",

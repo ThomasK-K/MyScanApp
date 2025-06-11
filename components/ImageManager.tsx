@@ -184,7 +184,7 @@ const FileMetadataManager: React.FC = () => {
       setIsLoading(true);
       // console.log("##### fileToUpload", metadata);
       try {
-        const url= settings.uploadUrl || "https://example.com/upload"; // Replace with your upload URL
+        const url= settings.uploadUrl || "http://localhost:3000"; // Replace with your upload URL
                   Alert.alert("Error", settings.uploadUrl || "No upload URL set" );
 
         if (!url) {
