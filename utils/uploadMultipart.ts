@@ -16,10 +16,6 @@ const pickImage = async () => {
   return null;
 };
 
-// Default upload URLs
-const DEFAULT_WEB_UPLOAD_URL = "http://localhost:3000/docs/upload";
-const DEFAULT_NATIVE_UPLOAD_URL = "http://192.168.10.113:3000/docs/upload";
-
 // Web upload function using Recoil settings
 export const uploadImageWithMetadataWeb = async (
   file: FileWithMetadata,
@@ -37,30 +33,38 @@ export const uploadImageWithMetadataWeb = async (
 
     // Use uploadUrl from argument or fallback to default
     // const url = uploadUrl || DEFAULT_WEB_UPLOAD_URL;
-    const url = 'http://localhost:3000/upload'; // Replace with your upload URL
+    const url = uploadUrl || "http://localhost:3000/upload"; // Replace with your upload URL
+
     const response = await fetch(url, {
       body: formData,
       method: "POST",
     });
-console.log("Response status:", response);
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (e) {
-      console.error("Response is not valid JSON:", e);
+
+    // Prüfe zuerst, ob die Antwort JSON ist
+    const contentType = response.headers.get("content-type");
+    let responseData: any = null;
+
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        responseData = await response.json();
+      } catch (e) {
+        console.error("Response is not valid JSON:", e);
+        return {
+          success: false,
+          message: "Server response is not valid JSON",
+        };
+      }
+    } else {
+      // Fallback: Text oder HTML anzeigen
+      const text = await response.text();
+      console.error("Server response is not JSON:", text);
       return {
         success: false,
-        message: "Server response is not valid JSON",
+        message: "Server response is not JSON",
+        data: text,
       };
     }
 
-    if (!responseData.ok) {
-      return {
-        success: false,
-        message: responseData.message || "Upload failed",
-        data: responseData,
-      };
-    }
     return {
       success: true,
       message: responseData.message || "Upload successful",
@@ -82,7 +86,7 @@ export const uploadImageWithMetadata = async (
 ): Promise<UploadResponse> => {
   try {
     // Use uploadUrl from argument or fallback to default
-    const url = uploadUrl || DEFAULT_NATIVE_UPLOAD_URL;
+    const url = uploadUrl || "http://localhost:3000/upload";
     const response = await FileSystem.uploadAsync(url, file.uri, {
       headers: {
         // Auth etc

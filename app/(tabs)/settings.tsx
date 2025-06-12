@@ -56,8 +56,6 @@ const SettingsRecoilScreen: React.FC = () => {
       setIsChanged(true);
     }
     
-
-
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Settings (Recoil + AsyncStorage)</Text>
@@ -67,7 +65,7 @@ const SettingsRecoilScreen: React.FC = () => {
           style={styles.input}
           value={localSettings.uploadUrl}
           onChangeText={(text) => handleChange("uploadUrl", text)}
-          placeholder="https://example.com/upload"
+          placeholder="https://localhost:3000/upload"
           autoCapitalize="none"
           autoCorrect={false}
         />

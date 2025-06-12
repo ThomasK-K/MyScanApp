@@ -225,7 +225,6 @@ const FileMetadataManager: React.FC = () => {
   const handleClose = (action: string): void => {
     // when Modal is closed
     if (action === "Save" && currentFileId) {
-      console.log("##### metadata", metadata);
       setFiles((prev) =>
         prev.map((file) =>
           file.id === currentFileId ? { ...file, metadata } : file
