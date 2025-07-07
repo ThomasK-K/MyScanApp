@@ -24,7 +24,7 @@ import * as DocumentPicker from "expo-document-picker";
 import DocumentScanner, {
   ResponseType,
 } from "react-native-document-scanner-plugin";
-import { UploadResponse,FileWithMetadata,metaDataType } from "../types";
+import { UploadResponse, FileWithMetadata, metaDataType } from "../types";
 import { InvoiceMetaDataForm } from "./MetaDataForms/InvoiceMetaDataForm";
 import { ReceiptMetadataForm } from "./MetaDataForms/ReceiptMetadataForm";
 import { settingsState, AppSettings } from "../state/recoilSettings";
@@ -35,7 +35,6 @@ import {
   uploadImageWithMetadata,
   uploadImageWithMetadataWeb,
 } from "../utils/uploadMultipart";
-
 
 /////////////////////////////////////////////////////////////////////////////////
 const FileMetadataManager: React.FC = () => {
@@ -177,15 +176,42 @@ const FileMetadataManager: React.FC = () => {
     [files]
   );
 
+  // Validierungsfunktion für Metadaten
+const validateMetadata = (metadata: metaDataType): { valid: boolean; message?: string } => {
+  // Beispiel: Pflichtfelder, passe nach Bedarf an!
+  const requiredFields = ["doctype", "year","amount"];
+  for (const field of requiredFields) {
+    if (!metadata[field] || (typeof metadata[field] === "string" && metadata[field].trim() === "")) {
+      return { valid: false, message: `Feld "${field}" ist erforderlich.` };
+    }
+  }
+  // Betrag muss Zahl sein
+  const regex = /^\d{1,7},\d{2}$/;
+  if (
+    metadata.amount &&
+    regex.test(String(metadata.amount))
+  ) {
+    return { valid: false, message: 'Das Feld "amount" muss eine Zahl sein.' };
+  }
+  // Weitere Prüfungen nach Bedarf...
+  return { valid: true };
+};
+  
   const uploadFile = useCallback(
     async (id: string) => {
       const fileToUpload = files.find((file) => file.id === id);
       if (!fileToUpload) return;
+      // Validate metadata before upload
+      const validation = validateMetadata(metadata);
+      if (!validation.valid) {
+        Alert.alert("Validation Error", validation.message || "Invalid metadata");
+        return;
+      }
       setIsLoading(true);
-      // console.log("##### fileToUpload", metadata);
+      
       try {
-        const url= settings.uploadUrl || "https://example.com/upload"; // Replace with your upload URL
-                  Alert.alert("Error", settings.uploadUrl || "No upload URL set" );
+        const url = settings.uploadUrl || "https://example.com/upload"; // Replace with your upload URL
+        Alert.alert("Error", settings.uploadUrl || "No upload URL set");
 
         if (!url) {
           Alert.alert("Error", "Upload URL is not set in settings");
@@ -194,15 +220,21 @@ const FileMetadataManager: React.FC = () => {
         }
         let res: UploadResponse = { success: false };
         if (Platform.OS === "web") {
-          res = await uploadImageWithMetadataWeb({
-            ...fileToUpload,
-            fieldData: fileToUpload.metadata
-          },url);
+          res = await uploadImageWithMetadataWeb(
+            {
+              ...fileToUpload,
+              fieldData: fileToUpload.metadata,
+            },
+            url
+          );
         } else {
-          res = await uploadImageWithMetadata({
-            ...fileToUpload,
-            fieldData: fileToUpload.metadata,
-          },url);
+          res = await uploadImageWithMetadata(
+            {
+              ...fileToUpload,
+              fieldData: fileToUpload.metadata,
+            },
+            url
+          );
         }
         if (res.success) {
           Alert.alert("Success", res.message || "Upload successful");
@@ -326,11 +358,12 @@ const FileMetadataManager: React.FC = () => {
                 Type: {file.mimeType || "Unknown"}
               </Text>
 
-              {file.metadata && Object.keys(file.metadata).map((key) => (
-                <Text key={key} style={styles.metadataText}>
-                  {key}: {String(metadata[key])}
-                </Text>
-              ))}
+              {file.metadata &&
+                Object.keys(file.metadata).map((key) => (
+                  <Text key={key} style={styles.metadataText}>
+                    {key}: {String(file.metadata?.[key])}
+                  </Text>
+                ))}
             </View>
             <View style={styles.viewActionButtons}>
               <TouchableOpacity
@@ -376,7 +409,7 @@ const styles = StyleSheet.create({
   },
   metadataContainer: {
     marginBottom: 20,
-  },  
+  },
   button: {
     padding: 12,
     borderRadius: 5,
