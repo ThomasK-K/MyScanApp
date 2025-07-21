@@ -106,7 +106,7 @@ const FileMetadataManager: React.FC = () => {
       }
     } catch (error) {
       console.error("File selection error:", error);
-      Alert.alert("Error", "Failed to select file");
+      showAlert("Error", "Failed to select file");
     } finally {
       setIsLoading(false);
     }
@@ -154,7 +154,7 @@ const FileMetadataManager: React.FC = () => {
         setFiles((prev) => [...prev, newFile]);
       } catch (error) {
         console.error("File processing error:", error);
-        Alert.alert("Error", "Failed to process file");
+        showAlert("Error", "Failed to process file");
       }
     },
     []
@@ -175,12 +175,12 @@ const FileMetadataManager: React.FC = () => {
     },
     [files]
   );
-
+  
   // Validierungsfunktion für Metadaten
-const validateMetadata = (metadata: metaDataType): { valid: boolean; message?: string } => {
-  // Beispiel: Pflichtfelder, passe nach Bedarf an!
-  const requiredFields = ["doctype", "year","amount"];
-  for (const field of requiredFields) {
+  const validateMetadata = (metadata: metaDataType): { valid: boolean; message?: string } => {
+    // Beispiel: Pflichtfelder, passe nach Bedarf an!
+    const requiredFields = ["doctype", "year","amount"];
+    for (const field of requiredFields) {
     if (!metadata[field] || (typeof metadata[field] === "string" && metadata[field].trim() === "")) {
       return { valid: false, message: `Feld "${field}" ist erforderlich.` };
     }
@@ -188,8 +188,8 @@ const validateMetadata = (metadata: metaDataType): { valid: boolean; message?: s
   // Betrag muss Zahl sein
   const regex = /^\d{1,7},\d{2}$/;
   if (
-    metadata.amount &&
-    regex.test(String(metadata.amount))
+    !(metadata.amount &&
+    regex.test(String(metadata.amount)))
   ) {
     return { valid: false, message: 'Das Feld "amount" muss eine Zahl sein.' };
   }
@@ -204,17 +204,24 @@ const validateMetadata = (metadata: metaDataType): { valid: boolean; message?: s
       // Validate metadata before upload
       const validation = validateMetadata(metadata);
       if (!validation.valid) {
-        Alert.alert("Validation Error", validation.message || "Invalid metadata");
+        showAlert("Validation Error", validation.message || "Invalid metadata");
         return;
       }
       setIsLoading(true);
       
       try {
-        const url = settings.uploadUrl || "https://example.com/upload"; // Replace with your upload URL
-        Alert.alert("Error", settings.uploadUrl || "No upload URL set");
-
+        let url = settings.uploadUrl || "https://example.com/upload"; // Replace with your upload URL
+        
+        // Für Web-Entwicklung: Verwende relative URL für den Proxy
+        if (Platform.OS === 'web' && url.includes('192.168.10.113:3000')) {
+          // Extrahiere nur den Pfad nach dem Port
+          const urlObj = new URL(url);
+          url = urlObj.pathname + urlObj.search; // z.B. /upload?param=value
+          console.log("Using relative URL for web:", url);
+        }
+        
         if (!url) {
-          Alert.alert("Error", "Upload URL is not set in settings");
+          showAlert("Error", "Upload URL is not set in settings");
           setIsLoading(false);
           return;
         }
@@ -235,9 +242,10 @@ const validateMetadata = (metadata: metaDataType): { valid: boolean; message?: s
             },
             url
           );
+          showAlert("Error", "Failed to upload file" + res.message);
         }
         if (res.success) {
-          Alert.alert("Success", res.message || "Upload successful");
+          showAlert("Success", res.message || "Upload successful");
           setMetadata(({}) => ({})); // Reset metadata after successful upload
 
           removeFile(id);
@@ -246,7 +254,7 @@ const validateMetadata = (metadata: metaDataType): { valid: boolean; message?: s
         }
       } catch (error) {
         console.error("Upload error:", error);
-        Alert.alert("Error", "Failed to upload file");
+        showAlert("Error", "Failed to upload file" + (error instanceof Error ? `: ${error.message}` : ""));
       } finally {
         setIsLoading(false);
       }
@@ -476,5 +484,16 @@ const styles = StyleSheet.create({
     color: "white",
   },
 });
+
+// Plattformübergreifende Alert-Funktion
+const showAlert = (title: string, message?: string): void => {
+  if (Platform.OS === 'web') {
+    // Im Browser verwenden wir das native window.alert
+    window.alert(`${title}${message ? '\n' + message : ''}`);
+  } else {
+    // In mobilen Apps verwenden wir das React Native Alert
+    Alert.alert(title, message);
+  }
+};
 
 export default FileMetadataManager;

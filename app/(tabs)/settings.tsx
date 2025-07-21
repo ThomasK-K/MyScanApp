@@ -6,12 +6,14 @@ import {
   Button,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CrossPlatformPicker as InputSelect } from "tkk-rn-component-package";
 import { docType } from "../../appData";
 import { useRecoilState } from "recoil";
 import { settingsState, AppSettings } from "../../state/recoilSettings";
+import { checkUploadUrl } from "../../utils/uploadMultipart";
 
 const STORAGE_KEY = "appSettings";
 type metaDataType = {
@@ -22,6 +24,8 @@ const SettingsRecoilScreen: React.FC = () => {
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [isChanged, setIsChanged] = useState(false);
   const [metadata, setMetadata] = useState<metaDataType>({});
+  const [urlStatus, setUrlStatus] = useState<{ success: boolean; message: string } | null>(null);
+  const [isTestingUrl, setIsTestingUrl] = useState(false);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -54,21 +58,76 @@ const SettingsRecoilScreen: React.FC = () => {
     (field: string, value: string | boolean) => {
       setLocalSettings((prev) => ({ ...prev, docType: value as string }));
       setIsChanged(true);
+    };
+    
+  const handleTestUrl = async () => {
+    setIsTestingUrl(true);
+    setUrlStatus(null);
+    
+    // Debug-Information
+    console.log(`[Settings] Test URL: ${localSettings.uploadUrl}`);
+    
+    try {
+      // Kurze Verzögerung für bessere UI/UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const result = await checkUploadUrl(localSettings.uploadUrl);
+      console.log("[Settings] URL-Test Ergebnis:", result);
+      setUrlStatus(result);
+    } catch (error) {
+      console.error("[Settings] URL-Test Fehler:", error);
+      setUrlStatus({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Ein unbekannter Fehler ist aufgetreten" 
+      });
+    } finally {
+      setIsTestingUrl(false);
     }
+  };
     
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Settings (Recoil + AsyncStorage)</Text>
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Upload URL</Text>
-        <TextInput
-          style={styles.input}
-          value={localSettings.uploadUrl}
-          onChangeText={(text) => handleChange("uploadUrl", text)}
-          placeholder="https://localhost:3000/upload"
-          autoCapitalize="none"
-          autoCorrect={false}
+        <View style={styles.urlInputContainer}>
+          <TextInput
+            style={[styles.input, styles.urlInput]}
+            value={localSettings.uploadUrl}
+            onChangeText={(text) => {
+              handleChange("uploadUrl", text);
+              setUrlStatus(null); // Reset status on URL change
+            }}
+            placeholder="http://192.168.10.xxx:3000/upload"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          
+        </View>
+        <Button
+          title="Verbindung testen"
+          onPress={handleTestUrl}
+          disabled={!localSettings.uploadUrl || isTestingUrl}
+          color="#007AFF"
         />
+        {isTestingUrl && (
+          <View style={styles.statusContainer}>
+            <ActivityIndicator size="small" color="#007AFF" />
+            <Text style={styles.statusText}>Verbindung wird getestet...</Text>
+          </View>
+        )}
+        {urlStatus && (
+          <View style={styles.statusContainer}>
+            <Text
+              style={[
+                styles.statusText,
+                urlStatus.success ? styles.successText : styles.errorText
+              ]}
+            >
+              {urlStatus.success ? '✅ ' : '❌ '}{urlStatus.message}
+            </Text>
+          </View>
+        )}
       </View>
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Belegart</Text>
@@ -97,6 +156,7 @@ const SettingsRecoilScreen: React.FC = () => {
             color={localSettings.theme === "dark" ? "#007AFF" : "#aaa"}
             onPress={() => handleChange("theme", "dark")}
           />
+    
         </View>
       </View>
       <Button
@@ -134,6 +194,32 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: "#f9f9f9",
+  },
+  urlInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  urlInput: {
+    flex: 1,
+  },
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  statusText: {
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  successText: {
+    color: "#28a745",
+    fontWeight: "500",
+  },
+  errorText: {
+    color: "#dc3545",
+    fontWeight: "500",
   },
   themeRow: {
     flexDirection: "row",

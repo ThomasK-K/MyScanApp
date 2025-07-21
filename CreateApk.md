@@ -148,6 +148,40 @@ android/app/build/outputs/apk/debug/app-debug.apk
 
 Ja, du kannst eine APK ohne EAS (Expo Application Services) erstellen, indem du den traditionellen React Native Ansatz mit "Expo prebuild" und dem Android-Build-System verwendest. Hier ist eine Anleitung dafür:
 
+# Development build
+#### Stelle sicher, dass expo-dev-client installiert ist
+npm install expo-dev-client
+
+#### Erstelle den Development Build
+npx expo run:android
+
+#### Erst den nativen Code generieren
+npx expo prebuild --platform android
+
+### Ins Android-Verzeichnis wechseln
+cd android
+
+#### Debug-APK bauen (mit Development-Client)
+export NODE_ENV=development
+chmod +x ./gradlew
+./gradlew assembleDebug
+
+#### APK installieren (Gerät muss angeschlossen sein)
+adb install app/build/outputs/apk/debug/app-debug.apk
+
+3. Nach der Installation
+Öffne die App auf deinem Gerät
+Stelle sicher, dass dein Gerät und dein Entwicklungscomputer im selben WLAN sind
+Starte deinen Entwicklungsserver: 
+```
+npx expo start
+oder 
+npx expo start --dev-client
+```
+Scanne den QR-Code mit der App oder wähle dein Projekt manuell aus
+
+
+
 ### 1. Erstelle eine Expo-Prebuild-Version (Bare Workflow)
 
 ```bash

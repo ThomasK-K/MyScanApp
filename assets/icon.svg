@@ -1,0 +1,49 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dokument mit Premium-Design -->
+  <rect x="128" y="128" width="768" height="768" rx="32" fill="white" stroke="#EAEAEA" stroke-width="8" filter="url(#docShadow)"/>
+  
+  <!-- Textzeilen mit professionellem Abstand -->
+  <g fill="none" stroke="#000" stroke-width="6" stroke-linecap="round">
+    <path d="M192 256 L832 256 M192 336 L832 336 M192 416 L832 416"/>
+    <path d="M192 496 L704 496 M192 576 L576 576 M192 656 L448 656 M192 736 L640 736"/>
+  </g>
+  
+  <!-- Premium-Scan-Logo (rechts oben) -->
+ <text x="850" y="210" 
+        font-family="'Segoe UI', sans-serif" 
+        font-size="72" 
+        font-weight="700" 
+        fill="#34a853"
+        filter="url(#shadow)"
+        text-anchor="end">
+    SCAN
+  </text>
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="3" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.2)"/>
+    </filter>
+  </defs> 
+  
+  <!-- Definitionen -->
+  <defs>
+    <!-- Dokument-Schatten -->
+    <filter id="docShadow" x="0" y="0" width="120%" height="120%">
+      <feDropShadow dx="12" dy="12" stdDeviation="16" flood-color="rgba(0,0,0,0.08)" flood-opacity="1"/>
+    </filter>
+    
+    <!-- Logo-Farbverlauf -->
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4285F4"/>
+      <stop offset="100%" stop-color="#34A853"/>
+    </linearGradient>
+    
+    <!-- Subtiler Scan-Strahlen-Effekt -->
+    <radialGradient id="scanGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="90%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.3"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Optional: Lichteffekt auf Scanner -->
+  <circle cx="704" cy="192" r="80" fill="url(#scanGlow)" opacity="0.5"/>
+</svg>
